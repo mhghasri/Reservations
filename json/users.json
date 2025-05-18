@@ -1,0 +1,16 @@
+{
+    "mhghasri": {
+        "password": "Mhghasri@123",
+        "name": "mohammad hossein ghasri",
+        "email": "mhghasri0021@gmail.com",
+        "permission": "admin",
+        "balance": 800
+    },
+    "alinorouzi": {
+        "password": "Alinorouzi@123",
+        "name": "ali norouzi",
+        "email": "alinorouzi@gmail.com",
+        "permission": "user",
+        "balance": 500
+    }
+}

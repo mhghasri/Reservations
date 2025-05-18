@@ -2,3 +2,5 @@ test.*
 env
 log.*
 *.jpg
+logs
+__pycache__

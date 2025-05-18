@@ -1,0 +1,20 @@
+{
+    "100101": {
+        "destination": "Mashhad",
+        "time": "1404-04-21 18:30:00",
+        "price": 1200,
+        "quantity": 2
+    },
+    "100102": {
+        "destination": "ahwaz",
+        "time": "1404-04-21 18:30:00",
+        "price": 400,
+        "quantity": 4
+    },
+    "100103": {
+        "destination": "Esfahan",
+        "time": "1404-03-31 21:00:00",
+        "price": 300,
+        "quantity": 8
+    }
+}

@@ -613,7 +613,11 @@ class AdminPanel(Admin):
             else:
                 print_color("Wrong input. Please try again.")
 
+# -------------------------------------------------------------------------------------------------------------- #
+
 class BasicUserPanel(BasicUser):
+    
+    
     def __init__(self, username):
         super().__init__(username)
 
@@ -653,3 +657,5 @@ class BasicUserPanel(BasicUser):
 
             else:
                 print_color("Invalid input. Please try again.")
+
+# -------------------------------------------------------------------------------------------------------------- #

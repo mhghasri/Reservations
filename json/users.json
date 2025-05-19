@@ -19,5 +19,12 @@
         "email": "hadi@test.com",
         "permission": "user",
         "balance": 2080.0
+    },
+    "mohsen": {
+        "password": "Mohsen@123",
+        "name": "mohsen akbari",
+        "email": "mohi@test.com",
+        "permission": "user",
+        "balance": 0
     }
 }

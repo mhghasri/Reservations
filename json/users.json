@@ -4,13 +4,20 @@
         "name": "mohammad hossein ghasri",
         "email": "mhghasri0021@gmail.com",
         "permission": "admin",
-        "balance": 800
+        "balance": 8920.0
     },
     "alinorouzi": {
         "password": "Alinorouzi@123",
         "name": "ali norouzi",
         "email": "alinorouzi@gmail.com",
         "permission": "user",
-        "balance": 500
+        "balance": 3801.9
+    },
+    "hadiahmadi": {
+        "password": "Hadiahmadi@123",
+        "name": "hadi ahmadi",
+        "email": "hadi@test.com",
+        "permission": "user",
+        "balance": 2080.0
     }
 }

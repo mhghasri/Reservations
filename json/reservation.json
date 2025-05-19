@@ -1,11 +1,22 @@
 {
-    "200201": {
+    "200202": {
         "buyer": "alinorouzi",
-        "price": 400,
-        "buy_time": "2025-05-19 00:09:18",
-        "travel_id": "100102",
-        "quantity": 1,
-        "final_price": 400,
-        "time": "1404-04-21 18:30:00"
+        "destination": "Ahwaz",
+        "price": 120,
+        "buy_time": "2025-05-19 14:03:46",
+        "travel_id": "100105",
+        "quantity": 3,
+        "final_price": 360,
+        "time": "1404-06-03 14:00:00"
+    },
+    "200204": {
+        "buyer": "alinorouzi",
+        "destination": "Mashhad",
+        "price": 297,
+        "buy_time": "2025-05-19 14:49:17",
+        "travel_id": "100104",
+        "quantity": 3,
+        "final_price": 891,
+        "time": "1404-04-21 14:30:00"
     }
 }

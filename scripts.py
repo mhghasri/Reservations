@@ -170,8 +170,7 @@ def login():
         password = input("\nPlease enter your password: ")
 
         if password == data[username]["password"]:
-            print_color(f"Wellcome back. Dear {username}", "g")
-            break
+            return username
 
         elif number == 1:
             print_color("Out of try. please try again later.")
@@ -182,7 +181,6 @@ def login():
             print_color(f"Invalid password. Please try again. '{number-1}' remaining.")
 
     write_log("login successfully", f"{username} login successfully.")
-    return username
 
 # -------------------------------------------------------------------------------------------------------------- #
 
@@ -216,9 +214,11 @@ class Users:
         index = 1
 
         for code, information in self.travel_data.items():
-            print_color(f"{index}. TravelID: {code} --- Destination: {information['destination']} --- Time: {information['time']} --- Price: {information['price']} --- Quantity: {information['quantity']}", "m")
-            print_color("-" * 40, "b")
-            index += 1
+
+            if information["quantity"] > 0:
+                print_color(f"{index}. TravelID: {code} --- Destination: {information['destination']} --- Time: {information['time']} --- Price: {information['price']} --- Quantity: {information['quantity']}", "m")
+                print_color("-" * 40, "b")
+                index += 1
 
 # ----------------------------------------------------- #
 
@@ -248,12 +248,21 @@ class Users:
 
 # ----------------------------------------------------- #
 
-    def update_balance(self, amount, receiver_username="mhghasri"):
-        self.balance -= amount
+    def update_balance(self, amount, receiver_username="mhghasri", buy_or_refund_or_charge: str="buy"):
 
         all_user_data = read_write_json_file()
 
-        all_user_data[receiver_username]["balance"] += amount
+        if buy_or_refund_or_charge == "buy":
+            self.balance -= amount
+            all_user_data[receiver_username]["balance"] += amount
+        
+        elif buy_or_refund_or_charge == "refund":
+            self.balance += amount
+            all_user_data[receiver_username]["balance"] -= amount
+
+        elif buy_or_refund_or_charge == "charge":
+            self.balance += amount
+
 
         all_user_data[self.username]["balance"] = self.balance
 
@@ -383,6 +392,19 @@ class Admin(Users):
 
             index += 1
 
+# ----------------------------------------------------- #
+
+    def show_travels(self):
+        print_color(f"{self.username} this is our travels.", "m")
+
+        index = 1
+
+        for code, information in self.travel_data.items():
+
+            print_color(f"{index}. TravelID: {code} --- Destination: {information['destination']} --- Time: {information['time']} --- Price: {information['price']} --- Quantity: {information['quantity']}", "m")
+            print_color("-" * 40, "b")
+            index += 1
+
 # -------------------------------------------------------------------------------------------------------------- #
 
 class BasicUser(Users):
@@ -398,43 +420,54 @@ class BasicUser(Users):
         travel_id = input("\nPlease enter Travel Id: ")
 
         if travel_id in self.travel_data:
+
             quantity = int(input("\nPlease enter your quantity of you want: "))
 
-            travel_price = self.travel_data[travel_id]["price"] * quantity
+            if quantity <= self.travel_data[travel_id]["quantity"]:
 
-            if travel_price <= self.balance:
 
-                if self.reservation:
-                    reservation_id = str(max(map(int, self.reservation.keys())) + 1)
+                travel_price = self.travel_data[travel_id]["price"] * quantity
+
+                if travel_price <= self.balance:
+
+                    if self.reservation:
+                        reservation_id = str(max(map(int, self.reservation.keys())) + 1)
+
+                    else:
+                        reservation_id  = "200101"
+
+                    self.reservation[reservation_id] = {
+                        "buyer" : self.username,
+                        "destination" : self.travel_data[travel_id]["destination"],
+                        "price" : self.travel_data[travel_id]["price"],
+                        "buy_time" : datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "travel_id" : travel_id,
+                        "quantity" : quantity,
+                        "final_price" : travel_price,
+                        "time" : self.travel_data[travel_id]["time"]
+                    }
+
+                    self.write_reservation()
+
+                    print_color(f"Dear {self.username} This is your buying list.\n\nreservation Id: {reservation_id} --- time: {self.travel_data[travel_id]["time"]} --- Quantity: {self.reservation[reservation_id]["quantity"]} --- Final price: {travel_price}", "g")
+                    
+
+                    self.travel_data[travel_id]["quantity"] -= quantity
+
+                    self.update_balance(travel_price)
+
+                    self.write_travel_data()
+
+                    self.show_balance()
 
                 else:
-                    reservation_id  = "200101"
+                    print_color("Not enough money please charge your balance.")
 
-                self.reservation[reservation_id] = {
-                    "buyer" : self.username,
-                    "price" : self.travel_data[travel_id]["price"],
-                    "buy_time" : datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "travel_id" : travel_id,
-                    "quantity" : quantity,
-                    "final_price" : travel_price,
-                    "time" : self.travel_data[travel_id]["time"]
-                }
-
-                self.write_reservation()
-
-                print_color(f"Dear {self.username} This is your buying list.\n\nreservation Id: {reservation_id} --- time: {self.travel_data[travel_id]["time"]} --- Quantity: {self.reservation[reservation_id]["quantity"]} --- Final price: {travel_price}", "g")
-                
-
-                self.travel_data[travel_id]["quantity"] -= quantity
-
-                self.update_balance(travel_price)
-
-                self.write_travel_data()
-
-                self.show_balance()
 
             else:
-                print_color("Not enough money please charge your balance.")
+                print_color("Out of quantity. Please try again.")
+
+                return None
 
         else:
             print_color("This id is not valid. Please try again.")
@@ -444,10 +477,179 @@ class BasicUser(Users):
     def write_reservation(self):
         read_write_json_file(data=self.reservation, mode="write", event="reservation")
 
+# ----------------------------------------------------- #
+
+    def search(self):
+        travel_name = input("\nPlease enter the travel you want: ").title().strip()
+        
+        index = 1
+
+        is_found = False
+
+        for travel_id, information in self.travel_data.items():
+            if travel_name == information["destination"]:
+                print_color(f"{index}. Travel ID: {travel_id} --- Destination: {information['destination']} --- Time: {information['time']} --- Price: {information['price']} --- Quantity: {information['quantity']}", "m")
+
+                print_color("-" * 40, "b")
+
+                index += 1
+
+                is_found = True
+
+        if not is_found:
+            print_color(f"No travel found for Destination: {travel_id}.")
+
+# ----------------------------------------------------- #
+
+    def show_my_travels(self):
+        
+        index = 1
+
+        is_found = False
+
+        print_color(f"Dear {self.username} This is your reservations: ", "c")
+
+        for res_id, information in self.reservation.items():
+            if self.username == information["buyer"]:
+                print_color(f"{index}. Reservation ID: {res_id} --- Destination: {information['destination']} --- Time: {information['time']} --- Price: {information['final_price']} --- Quantity: {information['quantity']}", "m")
+                
+                print_color("-" * 40, "b")
+
+                index += 1
+
+                is_found =True
+
+        if not is_found:
+            print_color(f"Dear {self.username} You dont have any reservation.")
+
+            return False
+        return True
+
+# ----------------------------------------------------- #
+    def refund_reservation(self):
+        if self.show_my_travels():
+
+            refund_id = input("\nPlease enter reservation id for refund it: ")
+
+            if refund_id in self.reservation.keys():
+                
+                print_color("Warning. If you refund a reservation you tax 10% for refund it care.")
+
+                while True:
+
+                    user_sure = input("\nAre you sure? Yes or no: ").lower()
+
+                    if user_sure in ("yes", "no", "y", "n"):
+                        if user_sure in ("yes", "y"):
+                            amount = self.reservation[refund_id]["final_price"] * 0.9
+                            self.travel_data[self.reservation[refund_id]["travel_id"]]["quantity"] += self.reservation[refund_id]["quantity"]
+                            del self.reservation[refund_id]
+                            self.write_reservation()
+                            self.write_travel_data()
+                            self.update_balance(amount=amount, buy_or_refund_or_charge="refund")
+                            print_color(f"Dear {self.username} reservation id: {refund_id} hes refund successfully.", "g")
+                            self.show_balance()
+
+                        else:
+                            print_color("Refund canceled successfully.", "g")
+
+                        break
+
+                    else:
+                        print_color(f"Dear {self.username} Please enter valid input.")
+
+
+
+            else:
+                print_color(f"Dear {self.username} this id: {refund_id} not found please try again.")
+
+# ----------------------------------------------------- #
+
+    def add_balance(self):
+        self.show_balance()
+
+        amount = int(input("\nPlease enter your balance: "))
+
+        self.update_balance(amount=amount, buy_or_refund_or_charge="charge")
+
+        self.show_balance()
+
 # -------------------------------------------------------------------------------------------------------------- #
 
-mh = Admin("mhghasri")
+class AdminPanel(Admin):
+    def __init__(self, username):
+        super().__init__(username)
 
-ali = BasicUser("alinorouzi")
+    def show_panel(self):
+        print_color(f"Wellcome Back Dear Admin. {self.username}.", "y")
+        while True:
+            print_color("1. Add new travel.\n2. Show Travel List.\n3. Edit travels.\n4. Delete a travel.\n5. show reservations.\n6. Current Balance.\n7. log out", "y")
 
-mh.show_all_reservation()
+            admin_option = input("\nPlease enter your choice: ")
+
+            if admin_option in "1234567":
+                if admin_option == "1":
+                    self.add_new_travel()
+
+                elif admin_option == "2":
+                    self.show_travels()
+
+                elif admin_option == "3":
+                    self.change_travel_information()
+
+                elif admin_option == "4":
+                    self.delet_travel()
+
+                elif admin_option == "5":
+                    self.show_all_reservation()
+
+                elif admin_option == "6":
+                    self.show_balance()
+
+                elif admin_option == "7":
+                    print_color("You log out successfully.", "g")
+                    return None
+
+            else:
+                print_color("Wrong input. Please try again.")
+
+class BasicUserPanel(BasicUser):
+    def __init__(self, username):
+        super().__init__(username)
+
+    def show_panel(self):
+        print_color(f"Wellcome back {self.username}.", "c")
+
+        while True:
+            print_color(f"1. Show all travels.\n2. Search travels.\n3. Reservation.\n4. My reservation.\n5. Refund a reservation.\n6. Add balance\n7. Show Balance.\n8. Logout", "c")
+
+            user_option = input("\nPlease enter your option: ")
+
+            if user_option in "12345678":
+                if user_option == "1":
+                    self.show_travels()
+                
+                elif user_option == "2":
+                    self.search()
+                
+                elif user_option == "3":
+                    self.add_reservation()
+                
+                elif user_option == "4":
+                    self.show_my_travels()
+                
+                elif user_option == "5":
+                    self.refund_reservation()
+                
+                elif user_option == "6":
+                    self.add_balance()
+
+                elif user_option == "7":
+                    self.show_balance()
+                
+                elif user_option == "8":
+                    print_color("Logout successfull.", "g")
+                    return None
+
+            else:
+                print_color("Invalid input. Please try again.")
